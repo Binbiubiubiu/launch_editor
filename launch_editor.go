@@ -11,12 +11,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fatih/color"
 	"github.com/matishsiao/goInfo"
 	"github.com/samber/lo"
 )
-
-var OS goInfo.GoInfoObject
 
 const (
 	IS_LINUX   = runtime.GOOS == "linux"
@@ -24,67 +21,24 @@ const (
 	IS_WINDOWS = runtime.GOOS == "windows"
 )
 
+var OS goInfo.GoInfoObject
+var childProcess *exec.Cmd
+var positionRE = regexp.MustCompile(`:(\d+)(:(\d+))?$`)
+
 func init() {
 	OS, _ = goInfo.GetInfo()
 }
 
-type ErrorCallback func(filename string, errorMessage string)
-
-func wrapErrorCallback(cb ErrorCallback) ErrorCallback {
-	return func(fileName string, errorMessage string) {
-		fmt.Println()
-		color.Red("Could not open %s in the editor.", filepath.Base(fileName))
-		if errorMessage != "" {
-			color.Red("The editor process exited with an error: %s", errorMessage)
-		}
-		if cb != nil {
-			cb(fileName, errorMessage)
-		}
-
-	}
-}
-
-func isTerminalEditor(editor string) bool {
-	switch editor {
-	case "vim", "emacs", "nano":
-		return true
-	}
-	return false
-}
-
-var positionRE = regexp.MustCompile(`:(\d+)(:(\d+))?$`)
-
-func parseFile(file string) (fileName string, lineNumber int, columnNumber int) {
-	fileName = positionRE.ReplaceAllLiteralString(file, "")
-	match := positionRE.FindAllStringSubmatch(file, 1)
-	matchSlice := match[0]
-	var err error
-	lineNumber, err = strconv.Atoi(matchSlice[1])
-	if err != nil {
-		lineNumber = 0
-	}
-	columnNumber, err = strconv.Atoi(matchSlice[3])
-	if err != nil {
-		columnNumber = 0
-	}
-	return
-}
-
-var childProcess *exec.Cmd
-
-func LaunchEditor(file string, specifiedEditor string, onErrorCallback ErrorCallback) (err error) {
+func LaunchEditor(file string, specifiedEditor string) (err error) {
 	fileName, lineNumber, columnNumber := parseFile(file)
 
 	if _, err = os.Stat(fileName); err != nil && os.IsNotExist(err) {
 		return
 	}
 
-	onErrorCallback = wrapErrorCallback(onErrorCallback)
-
 	editor, args := GuessEditor(specifiedEditor)
 	if lo.IsEmpty(editor) {
-		onErrorCallback(fileName, "")
-		return
+		return &EditorProcessError{fileName: fileName}
 	}
 
 	if IS_LINUX && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?i)Microsoft`).MatchString(OS.Core) {
@@ -119,18 +73,53 @@ func LaunchEditor(file string, specifiedEditor string, onErrorCallback ErrorCall
 	childProcess.Stdout = os.Stdout
 	childProcess.Stderr = os.Stderr
 
-	if err := childProcess.Start(); err != nil {
-		onErrorCallback(fileName, err.Error())
+	if err = childProcess.Start(); err != nil {
+		return &EditorProcessError{fileName: fileName, errorMessage: err.Error()}
 	}
 
 	if re := childProcess.Wait(); re != nil {
 		childProcess = nil
-		err = re
-		re := re.(*exec.ExitError)
-		code := re.ProcessState.ExitCode()
+		code := re.(*exec.ExitError).ExitCode()
 		if code > 0 {
-			onErrorCallback(fileName, fmt.Sprintf(`(code %v)`, code))
+			return &EditorProcessError{fileName: fileName, errorMessage: fmt.Sprintf(`(code %v)`, code)}
 		}
+	}
+	return
+}
+
+type EditorProcessError struct {
+	fileName     string
+	errorMessage string
+}
+
+func (e *EditorProcessError) Error() string {
+	var msg string
+	if lo.IsNotEmpty(e.errorMessage) {
+		msg = fmt.Sprintf("The editor process exited with an error: %s", e.errorMessage)
+	}
+	return fmt.Sprintf("Could not open %s in the editor.%s", filepath.Base(e.fileName), msg)
+}
+
+func isTerminalEditor(editor string) bool {
+	switch editor {
+	case "vim", "emacs", "nano":
+		return true
+	}
+	return false
+}
+
+func parseFile(file string) (fileName string, lineNumber int, columnNumber int) {
+	fileName = positionRE.ReplaceAllLiteralString(file, "")
+	match := positionRE.FindAllStringSubmatch(file, 1)
+	matchSlice := match[0]
+	var err error
+	lineNumber, err = strconv.Atoi(matchSlice[1])
+	if err != nil {
+		lineNumber = 0
+	}
+	columnNumber, err = strconv.Atoi(matchSlice[3])
+	if err != nil {
+		columnNumber = 0
 	}
 	return
 }
