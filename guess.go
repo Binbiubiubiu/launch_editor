@@ -1,7 +1,7 @@
 package launch_editor
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,7 +27,7 @@ func execCmd(cmd string) (output string, err error) {
 	if err != nil {
 		return
 	}
-	buf, err := ioutil.ReadAll(os.Stdout)
+	buf, err := io.ReadAll(os.Stdout)
 	if err != nil {
 		return
 	}

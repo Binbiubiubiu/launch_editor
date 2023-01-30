@@ -87,7 +87,7 @@ func LaunchEditor(file string, specifiedEditor string, onErrorCallback ErrorCall
 		return
 	}
 
-	if IS_LINUX && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?!)Microsoft`).MatchString(OS.Core) {
+	if IS_LINUX && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?i)Microsoft`).MatchString(OS.Core) {
 		// Assume WSL / "Bash on Ubuntu on Windows" is being used, and
 		// that the file exists on the Windows file system.
 		// `os.release()` is "4.4.0-43-Microsoft" in the current release
@@ -105,7 +105,7 @@ func LaunchEditor(file string, specifiedEditor string, onErrorCallback ErrorCall
 	}
 
 	if childProcess != nil && isTerminalEditor(editor) {
-		syscall.Kill(childProcess.Process.Pid, syscall.SIGKILL)
+		_ = syscall.Kill(childProcess.Process.Pid, syscall.SIGKILL)
 	}
 
 	if IS_WINDOWS {
