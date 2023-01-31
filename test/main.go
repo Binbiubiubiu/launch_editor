@@ -11,5 +11,4 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// fmt.Println(filepath.Base("D:\\Program Files\\Microsoft VS Code\\Code.exe"))
 }
