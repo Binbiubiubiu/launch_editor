@@ -15,4 +15,5 @@ func getLocalEditor() (editor string) {
 			return
 		}
 	}
+	return
 }
