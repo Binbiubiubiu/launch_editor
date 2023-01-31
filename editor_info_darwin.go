@@ -1,6 +1,6 @@
-package editor_info
+package launch_editor
 
-var COMMON_EDITORS_OSX = map[string]string{
+var editorInfo = map[string]string{
 	"/Applications/Atom.app/Contents/MacOS/Atom":                              "atom",
 	"/Applications/Atom Beta.app/Contents/MacOS/Atom Beta":                    "/Applications/Atom Beta.app/Contents/MacOS/Atom Beta",
 	"/Applications/Brackets.app/Contents/MacOS/Brackets":                      "brackets",

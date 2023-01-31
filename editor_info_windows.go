@@ -1,6 +1,6 @@
-package editor_info
+package launch_editor
 
-var COMMON_EDITORS_WIN = []string{
+var editorInfo = []string{
 	"Brackets.exe",
 	"Code.exe",
 	"Code - Insiders.exe",

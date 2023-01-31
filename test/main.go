@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	err := LaunchEditor("guess.go:59:20")
+	err := LaunchEditor("guess.go:10:20")
 	if err != nil {
 		log.Fatalln(err)
 	}

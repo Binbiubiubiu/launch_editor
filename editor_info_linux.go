@@ -1,6 +1,6 @@
-package editor_info
+package launch_editor
 
-var COMMON_EDITORS_LINUX = map[string]string{
+var editorInfo = map[string]string{
 	"atom":          "atom",
 	"Brackets":      "brackets",
 	"code":          "code",
