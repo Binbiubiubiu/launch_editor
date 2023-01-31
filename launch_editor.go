@@ -21,7 +21,7 @@ const (
 )
 
 var osInfo goInfo.GoInfoObject
-var childProcess *spawnProcess = nil
+var childProcess *crossSpawn = nil
 var positionRE = regexp.MustCompile(`:(\d+)(:(\d+))?$`)
 
 func init() {
@@ -44,7 +44,7 @@ func LaunchEditorWithName(file string, specifiedEditor string) (err error) {
 		return &EditorProcessError{fileName: fileName}
 	}
 
-	if isLinux && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?i)Microsoft`).MatchString(osInfo.Core) {
+	if isLinux && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile("(?i)Microsoft").MatchString(osInfo.Core) {
 		// Assume WSL / "Bash on Ubuntu on Windows" is being used, and
 		// that the file exists on the Windows file system.
 		// `os.release()` is "4.4.0-43-Microsoft" in the current release
@@ -65,13 +65,7 @@ func LaunchEditorWithName(file string, specifiedEditor string) (err error) {
 		childProcess.cancel()
 	}
 
-	if isWindows {
-		args = append([]string{"/C", editor}, args...)
-		childProcess = spawn("cmd.exe", args...)
-
-	} else {
-		childProcess = spawn(editor, args...)
-	}
+	childProcess = spawn(editor, args...)
 	childProcess.Stdin = os.Stdin
 	childProcess.Stdout = os.Stdout
 	childProcess.Stderr = os.Stderr
@@ -84,7 +78,7 @@ func LaunchEditorWithName(file string, specifiedEditor string) (err error) {
 		childProcess = nil
 		code := re.(*exec.ExitError).ExitCode()
 		if code > 0 {
-			return &EditorProcessError{fileName: fileName, errorMessage: fmt.Sprintf(`(code %v)`, code)}
+			return &EditorProcessError{fileName: fileName, errorMessage: fmt.Sprintf("(code %v)", code)}
 		}
 	}
 	return

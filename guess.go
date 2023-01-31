@@ -1,12 +1,9 @@
 package launch_editor
 
 import (
-	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 
 	. "github.com/Binbiubiubiu/launch-editor/editor_info"
 	"github.com/google/shlex"
@@ -18,16 +15,9 @@ func execCmd(cmd string) (output string, err error) {
 	if err != nil {
 		return
 	}
-	binary, err := exec.LookPath(shellArgs[0])
-	if err != nil {
-		return
-	}
 
-	err = syscall.Exec(binary, shellArgs, os.Environ())
-	if err != nil {
-		return
-	}
-	buf, err := io.ReadAll(os.Stdout)
+	cp := spawn(shellArgs[0], shellArgs[1:]...)
+	buf, err := cp.CombinedOutput()
 	if err != nil {
 		return
 	}
@@ -91,12 +81,11 @@ func guessEditor(specifiedEditor string) (editor string, args []string) {
 			}
 		}
 	} else if isWindows {
-		output, _ = execCmd(`powershell -NoProfile -Command "Get-CimInstance -Query \\"select executablepath from win32_process where executablepath is not null\\" | % { $_.ExecutablePath }"`)
-		runningProcesses := strings.Split(output, `\r\n`)
+		output, _ = execCmd(`wmic process where "executablepath is not null" get executablepath`)
+		runningProcesses := strings.Split(output, "\r\n")
 		for i := 0; i < len(runningProcesses); i++ {
 			fullProcessPath := strings.TrimSpace(runningProcesses[i])
 			shortProcessName := filepath.Base(fullProcessPath)
-
 			for _, v := range COMMON_EDITORS_WIN {
 				if v == shortProcessName {
 					editor = fullProcessPath
@@ -122,6 +111,5 @@ func guessEditor(specifiedEditor string) (editor string, args []string) {
 		editor = EDITOR
 		return
 	}
-
 	return
 }
