@@ -35,7 +35,7 @@ func execCmd(cmd string) (output string, err error) {
 	return
 }
 
-func GuessEditor(specifiedEditor string) (editor string, args []string) {
+func guessEditor(specifiedEditor string) (editor string, args []string) {
 	args, err := shlex.Split(specifiedEditor)
 	if err != nil {
 		editor = specifiedEditor
@@ -62,7 +62,7 @@ func GuessEditor(specifiedEditor string) (editor string, args []string) {
 	}
 
 	var output string
-	if IS_OSX {
+	if isOsx {
 		output, _ = execCmd("ps x -o comm=")
 		processNames := lo.Keys(COMMON_EDITORS_OSX)
 		processList := strings.Split(output, "\n")
@@ -90,7 +90,7 @@ func GuessEditor(specifiedEditor string) (editor string, args []string) {
 				}
 			}
 		}
-	} else if IS_WINDOWS {
+	} else if isWindows {
 		output, _ = execCmd(`powershell -NoProfile -Command "Get-CimInstance -Query \\"select executablepath from win32_process where executablepath is not null\\" | % { $_.ExecutablePath }"`)
 		runningProcesses := strings.Split(output, `\r\n`)
 		for i := 0; i < len(runningProcesses); i++ {
@@ -104,7 +104,7 @@ func GuessEditor(specifiedEditor string) (editor string, args []string) {
 				}
 			}
 		}
-	} else if IS_LINUX {
+	} else if isLinux {
 		output, _ = execCmd("ps x --no-heading -o comm --sort=comm")
 		processNames := lo.Keys(COMMON_EDITORS_LINUX)
 		for _, processName := range processNames {

@@ -9,39 +9,42 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/matishsiao/goInfo"
 	"github.com/samber/lo"
 )
 
 const (
-	IS_LINUX   = runtime.GOOS == "linux"
-	IS_OSX     = runtime.GOOS == "darwin"
-	IS_WINDOWS = runtime.GOOS == "windows"
+	isLinux   = runtime.GOOS == "linux"
+	isOsx     = runtime.GOOS == "darwin"
+	isWindows = runtime.GOOS == "windows"
 )
 
-var OS goInfo.GoInfoObject
-var childProcess *exec.Cmd
+var osInfo goInfo.GoInfoObject
+var childProcess *spawnProcess = nil
 var positionRE = regexp.MustCompile(`:(\d+)(:(\d+))?$`)
 
 func init() {
-	OS, _ = goInfo.GetInfo()
+	osInfo, _ = goInfo.GetInfo()
 }
 
-func LaunchEditor(file string, specifiedEditor string) (err error) {
+func LaunchEditor(file string) error {
+	return LaunchEditorWithName(file, "")
+}
+
+func LaunchEditorWithName(file string, specifiedEditor string) (err error) {
 	fileName, lineNumber, columnNumber := parseFile(file)
 
 	if _, err = os.Stat(fileName); err != nil && os.IsNotExist(err) {
 		return
 	}
 
-	editor, args := GuessEditor(specifiedEditor)
+	editor, args := guessEditor(specifiedEditor)
 	if lo.IsEmpty(editor) {
 		return &EditorProcessError{fileName: fileName}
 	}
 
-	if IS_LINUX && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?i)Microsoft`).MatchString(OS.Core) {
+	if isLinux && strings.HasPrefix(fileName, "mnt") && regexp.MustCompile(`(?i)Microsoft`).MatchString(osInfo.Core) {
 		// Assume WSL / "Bash on Ubuntu on Windows" is being used, and
 		// that the file exists on the Windows file system.
 		// `os.release()` is "4.4.0-43-Microsoft" in the current release
@@ -52,22 +55,22 @@ func LaunchEditor(file string, specifiedEditor string) (err error) {
 	}
 
 	if lineNumber > 0 {
-		extraArgs := GetArgumentsForPosition(editor, fileName, lineNumber, columnNumber)
+		extraArgs := getArgumentsForPosition(editor, fileName, lineNumber, columnNumber)
 		args = append(args, extraArgs...)
 	} else {
 		args = append(args, fileName)
 	}
 
 	if childProcess != nil && isTerminalEditor(editor) {
-		_ = syscall.Kill(childProcess.Process.Pid, syscall.SIGKILL)
+		childProcess.cancel()
 	}
 
-	if IS_WINDOWS {
+	if isWindows {
 		args = append([]string{"/C", editor}, args...)
-		childProcess = exec.Command("cmd.exe", args...)
+		childProcess = spawn("cmd.exe", args...)
 
 	} else {
-		childProcess = exec.Command(editor, args...)
+		childProcess = spawn(editor, args...)
 	}
 	childProcess.Stdin = os.Stdin
 	childProcess.Stdout = os.Stdout

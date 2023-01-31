@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func GetArgumentsForPosition(editor string, fileName string, lineNumber int, columnNumber int) []string {
+func getArgumentsForPosition(editor string, fileName string, lineNumber int, columnNumber int) []string {
 	eidtorBasename := regexp.MustCompile(`\.(exe|cmd|bat)$`).ReplaceAllString(filepath.Base(editor), "")
 	switch eidtorBasename {
 	case "atom", "Atom", "Atom Beta", "subl", "sublime", "sublime_text", "wstorm", "charm":
