@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	. "github.com/Binbiubiubiu/launch-editor"
+	launch_editor "github.com/Binbiubiubiu/launch-editor"
 )
 
 func main() {
-	err := LaunchEditor("guess.go:10:20")
+	err := launch_editor.LaunchEditor("guess.go:10:20")
 	if err != nil {
 		log.Fatalln(err)
 	}
