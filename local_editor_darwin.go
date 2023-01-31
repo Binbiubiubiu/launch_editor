@@ -1,5 +1,11 @@
 package launch_editor
 
+import (
+	"strings"
+
+	"github.com/samber/lo"
+)
+
 func getLocalEditor() (editor string) {
 	output, _ := execCmd("ps x -o comm=")
 	processNames := lo.Keys(editorInfo)
