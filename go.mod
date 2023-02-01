@@ -1,4 +1,4 @@
-module github.com/Binbiubiubiu/launch-editor
+module github.com/Binbiubiubiu/launch_editor
 
 go 1.19
 
@@ -8,4 +8,4 @@ require (
 	github.com/samber/lo v1.37.0
 )
 
-require golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
+require golang.org/x/exp v0.0.0-20230131120322-dfa7d7a641b0 // indirect

@@ -11,7 +11,7 @@ package main
 import (
 	"log"
 
-	. "github.com/Binbiubiubiu/launch-editor"
+	. "github.com/Binbiubiubiu/launch_editor"
 )
 
 func main() {

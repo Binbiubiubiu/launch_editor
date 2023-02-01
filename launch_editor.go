@@ -76,7 +76,11 @@ func LaunchEditorWithName(file string, specifiedEditor string) (err error) {
 
 	if re := childProcess.Wait(); re != nil {
 		childProcess = nil
-		code := re.(*exec.ExitError).ExitCode()
+		re, ok := re.(*exec.ExitError)
+		if !ok {
+			return &EditorProcessError{fileName: fileName, errorMessage: re.Error()}
+		}
+		code := re.ExitCode()
 		if code > 0 {
 			return &EditorProcessError{fileName: fileName, errorMessage: fmt.Sprintf("(code %v)", code)}
 		}
