@@ -71,6 +71,6 @@ column=$3
 my-editor -l $line -c $column -f $filename
 ```
 
-## inspired
+## Thanks
 
 [launch-editor](https://github.com/yyx990803/launch-editor)  Open file in editor from Node.js.
