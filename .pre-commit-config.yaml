@@ -1,0 +1,25 @@
+fail_fast: false
+repos:
+  - repo: local
+    hooks:
+      - id: typos
+        name: typos
+        description: check typo
+        entry: bash -c 'typos'
+        language: golang
+        files: \.go$
+        pass_filenames: false
+      - id: golangci-lint
+        name: golangci-lint
+        description: Lint go sources
+        entry: bash -c 'golangci-lint run'
+        language: golang
+        files: \.go$
+        pass_filenames: false
+      - id: go-test
+        name: go test
+        description: unit test for the project
+        entry: bash -c 'go test -v'
+        language: golang
+        files: \.go$
+        pass_filenames: false
